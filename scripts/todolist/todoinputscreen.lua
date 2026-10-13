@@ -1,8 +1,9 @@
--- 按「＋ 新增」彈出的小輸入框。Enter 新增後留在輸入狀態可連續輸入，Esc 或「完成」關閉。
+-- 按「＋ 新增」彈出的小輸入框。Enter 或「新增」成功後自動關閉，Esc 或點視窗外取消。
 
 local Screen = require "widgets/screen"
 local Widget = require "widgets/widget"
 local TEMPLATES = require "widgets/redux/templates"
+local L = require "todolist/i18n"
 
 local WINDOW_W, WINDOW_H = 460, 160
 -- RectangleWindow 會把自己縮成 0.7 倍，這裡先放大回來讓外框貼齊
@@ -31,9 +32,9 @@ local TodoInputScreen = Class(Screen, function(self, onsubmit)
     self.root = self:AddChild(Widget("todolist_input_root"))
     self.root:SetScale(TheFrontEnd:GetHUDScale())
 
-    self.window = self.root:AddChild(TEMPLATES.RectangleWindow(WINDOW_W / WINDOW_SCALE, WINDOW_H / WINDOW_SCALE, "新增待辦"))
+    self.window = self.root:AddChild(TEMPLATES.RectangleWindow(WINDOW_W / WINDOW_SCALE, WINDOW_H / WINDOW_SCALE, L.Get("INPUT_TITLE")))
 
-    self.input = self.root:AddChild(TEMPLATES.StandardSingleLineTextEntry(nil, 400, 44, CHATFONT, 28, "輸入後按 Enter…"))
+    self.input = self.root:AddChild(TEMPLATES.StandardSingleLineTextEntry(nil, 400, 44, CHATFONT, 28, L.Get("INPUT_HINT")))
     self.input:SetPosition(0, 15)
     self.input.textbox:SetTextLengthLimit(80)
     self.input.textbox:EnableWordWrap(false)
@@ -45,11 +46,8 @@ local TodoInputScreen = Class(Screen, function(self, onsubmit)
 
     self.add_button = self.root:AddChild(TEMPLATES.StandardButton(function()
         self:Submit(self.input.textbox:GetString())
-    end, "新增", { 120, 40 }))
-    self.add_button:SetPosition(-70, -45)
-
-    self.done_button = self.root:AddChild(TEMPLATES.StandardButton(function() self:Close() end, "完成", { 120, 40 }))
-    self.done_button:SetPosition(70, -45)
+    end, L.Get("INPUT_ADD"), { 120, 40 }))
+    self.add_button:SetPosition(0, -45)
 
     self.default_focus = self.input.textbox
     SetAutopaused(true)
@@ -63,9 +61,10 @@ end
 
 function TodoInputScreen:Submit(text)
     if self.onsubmit(text) then
-        self.input.textbox:SetString("")
+        self:Close()
+        return
     end
-    -- 留在輸入狀態，方便連續新增
+    -- 空白沒新增成功，留在輸入狀態
     self.input.textbox:SetEditing(true)
 end
 

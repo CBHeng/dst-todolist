@@ -3,23 +3,18 @@ local TheNet = G.TheNet
 
 local Widget = G.require("widgets/widget")
 local Store = G.require("todolist/store")
+local Layout = G.require("todolist/layout")
+local I18n = G.require("todolist/i18n")
 local TodoPanel = G.require("todolist/todopanel")
 
--- 每個位置對應：HUD 錨點，以及面板標題列中心相對錨點的偏移
-local POSITIONS =
-{
-    right   = { h = G.ANCHOR_RIGHT, v = G.ANCHOR_MIDDLE, x = -170, y = 260 },
-    top     = { h = G.ANCHOR_MIDDLE, v = G.ANCHOR_TOP, x = 0, y = -40 },
-    topleft = { h = G.ANCHOR_LEFT, v = G.ANCHOR_TOP, x = 170, y = -200 },
-}
-
-local position = POSITIONS[GetModConfigData("panel_position")] or POSITIONS.right
+I18n.SetLanguage(GetModConfigData("language"))
 
 -- Controls 是 HUD 的主體，每次進入世界（含進出洞穴）都會重新建立
 AddClassPostConstruct("widgets/controls", function(controls)
+    -- 錨在左下角，面板位置由 TodoPanel 依螢幕座標自行換算
     local root = controls:AddChild(Widget("todolist_hud_root"))
-    root:SetHAnchor(position.h)
-    root:SetVAnchor(position.v)
+    root:SetHAnchor(G.ANCHOR_LEFT)
+    root:SetVAnchor(G.ANCHOR_BOTTOM)
     root:SetScaleMode(G.SCALEMODE_PROPORTIONAL)
     root:SetMaxPropUpscale(G.MAX_HUD_SCALE)
     root:SetScale(G.TheFrontEnd:GetHUDScale())
@@ -33,10 +28,12 @@ AddClassPostConstruct("widgets/controls", function(controls)
 
     local store = Store(TheNet:GetSessionIdentifier())
     store:Load(function(s)
-        if not root.inst:IsValid() then
-            return
-        end
-        local panel = root:AddChild(TodoPanel(controls.owner, s))
-        panel:SetPosition(position.x, position.y)
+        Layout.Load(function(pos)
+            if not root.inst:IsValid() then
+                return
+            end
+            local panel = root:AddChild(TodoPanel(controls.owner, s, pos))
+            panel:ApplyPosition()
+        end)
     end)
 end)

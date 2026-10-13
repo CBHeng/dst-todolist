@@ -70,6 +70,11 @@ function Store:Remove(index)
     end
 end
 
+function Store:Clear()
+    self.items = {}
+    self:Save()
+end
+
 function Store:CountUnfinished()
     local n = 0
     for _, item in ipairs(self.items) do
