@@ -22,6 +22,9 @@ version = "1.0.0"
 
 api_version = 10
 
+icon_atlas = "modicon.xml"
+icon = "modicon.tex"
+
 dst_compatible = true
 dont_starve_compatible = false
 reign_of_giants_compatible = false
